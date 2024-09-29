@@ -5,17 +5,19 @@ import React, { useState, useEffect } from 'react';
 import io from 'socket.io-client';
 import { useAuthStore } from '../zustand/useAuthStore';
 import { useUserStore } from '../zustand/useUserStore';
+import { useChatMsgsStore } from '../zustand/useChatMsgsStore';
 import axios from 'axios';
 import ChatUsers from '../_components/ChatUsers';
 import { useChatReceiverStore } from '../zustand/useChatReceiverStore';
 
 const Chat = () => {
-	const [msgs, setMsgs] = useState([]);
+	//const [msgs, setMsgs] = useState([]);
 	const [msg, setMsg] = useState('');
 	const [socket, setSocket] = useState(null);
 	const { authName } = useAuthStore();
 	const { updateUsers } = useUserStore();
 	const { chatReceiver } = useChatReceiverStore();
+	const { chatMsgs, updateChatMsgs } = useChatMsgsStore();
 
 	const getUserData = async () => {
 		const res = await axios.get('http://localhost:8080/users', {
@@ -37,10 +39,8 @@ const Chat = () => {
 			// Listen for incoming msgs
 			newSocket.on('chat msg', (msg) => {
 				console.log('received msg on client ' + msg);
-				setMsgs((prevMsgs) => [
-					...prevMsgs,
-					{ text: msg.textMsg, sentByCurrentUser: false },
-				]);
+				updateChatMsgs([...chatMsgs, msg]);
+				//setMsgs((prevMsgs) => [...prevMsgs,{ text: msg.textMsg, sentByCurrentUser: false },]);
 			});
 
 			getUserData();
@@ -59,35 +59,33 @@ const Chat = () => {
 		};
 		if (socket) {
 			socket.emit('chat msg', msgToBeSent);
-			setMsgs((prevMsgs) => [
-				...prevMsgs,
-				{ text: msg, sentByCurrentUser: true },
-			]);
+			updateChatMsgs([...chatMsgs, msgToBeSent]);
+			//setMsgs((prevMsgs) => [	...prevMsgs,	{ text: msg, sentByCurrentUser: true },]);
 			setMsg('');
 		}
 	};
 	return (
 		<div className='h-screen flex divide-x-4'>
-			<div className='w-1/5'>
+			<div className='w-1/5 '>
 				<ChatUsers />
 			</div>
 			<div className='w-4/5 flex flex-col'>
 				<div className='1/5'>
 					<h1>
-						{authName} is chatting with : {chatReceiver}
+						{authName} is chatting with {chatReceiver}
 					</h1>
 				</div>
-				<div className='msgs-container h-4/5 overflow-scroll'>
-					{msgs.map((msg, index) => (
+				<div className='msgs-container h-3/5 overflow-scroll'>
+					{chatMsgs?.map((msg, index) => (
 						<div
 							key={index}
-							className={`m-5 ${
-								msg.sentByCurrentUser ? 'text-right' : 'text-left'
+							className={`m-3 p-1 ${
+								msg.sender === authName ? 'text-right' : 'text-left'
 							}`}>
 							<span
-								className={`${
-									msg.sentByCurrentUser ? 'bg-blue-200' : 'bg-green-200'
-								} p-3 rounded-lg`}>
+								className={`p-2 rounded-2xl ${
+									msg.sender === authName ? 'bg-blue-200' : 'bg-green-200'
+								}`}>
 								{msg.text}
 							</span>
 						</div>
