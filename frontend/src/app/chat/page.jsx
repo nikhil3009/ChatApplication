@@ -20,16 +20,19 @@ const Chat = () => {
 	const { chatMsgs, updateChatMsgs } = useChatMsgsStore();
 
 	const getUserData = async () => {
-		const res = await axios.get('http://localhost:8080/users', {
-			withCredentials: true,
-		});
+		const res = await axios.get(
+			`${process.env.NEXT_PUBLIC_BE_HOST}:8080/users`,
+			{
+				withCredentials: true,
+			}
+		);
 		console.log('users list', res.data);
 		updateUsers(res.data);
 	};
 
 	useEffect(() => {
 		if (authName) {
-			const newSocket = io('http://localhost:3030', {
+			const newSocket = io(`${process.env.NEXT_PUBLIC_BE_HOST}:3030`, {
 				query: {
 					username: authName,
 				},

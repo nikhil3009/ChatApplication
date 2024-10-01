@@ -18,7 +18,7 @@ const ChatUsers = () => {
 	useEffect(() => {
 		const getMsgs = async () => {
 			const res = await axios.get(
-				'http://localhost:3030/msgs',
+				`${process.env.NEXT_PUBLIC_BE_HOST}:3030/msgs`,
 				{
 					params: {
 						sender: authName,

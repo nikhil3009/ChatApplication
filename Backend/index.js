@@ -7,6 +7,7 @@ import cors from 'cors';
 import connectToMongoose from './db/connectToMongoDB.js';
 import { addMsgToConversation } from './controllers/msgs.controller.js';
 import msgsRouter from './routes/msgs.route.js';
+import { subscribe, publish } from './redis/msgsPubSub.js';
 
 dotenv.config();
 
@@ -38,6 +39,10 @@ io.on('connection', (socket) => {
 	const username = socket.handshake.query.username;
 	console.log('one-one', username);
 	userSocketMap[username] = socket;
+	const channelName = `chat_${username}`;
+	subscribe(channelName, (msg) => {
+		socket.emit('chat msg', JSON.parse(msg));
+	});
 
 	socket.on('chat msg', (msg) => {
 		console.log(msg.sender);
@@ -47,7 +52,11 @@ io.on('connection', (socket) => {
 		const receiverSocket = userSocketMap[msg.receiver];
 		if (receiverSocket) {
 			receiverSocket.emit('chat msg', msg);
+		} else {
+			const channelName = `chat_${msg.receiver}`;
+			publish(channelName, JSON.stringify(msg));
 		}
+
 		addMsgToConversation([msg.sender, msg.receiver], {
 			text: msg.textMsg,
 			sender: msg.sender,

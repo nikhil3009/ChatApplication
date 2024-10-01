@@ -1,0 +1,43 @@
+# @format
+
+version: '3.8'
+
+services:
+  backend:
+    image: nick3009/chatapp-backend:lts
+    build:
+      context: ./backend # Path to the backend Dockerfile
+    ports:
+      - '3030:3030'
+
+  backend2:
+    image: nick3009/chatapp-backend2:lts
+    build:
+      context: ./backend # Path to the backend Dockerfile
+    ports:
+      - '3032:3030'
+
+  auth-backend:
+    image: nick3009/chatapp-auth-backend:lts
+    build:
+      context: ./auth-backend # Path to the backend Dockerfile
+    ports:
+      - '8080:8080'
+
+  frontend:
+    image: nick3009/chatapp-frontend:lts
+    build:
+      context: ./frontend # Path to the frontend Dockerfile
+    ports:
+      - '3000:3000'
+    depends_on:
+      - backend # Wait for backend service to be ready before starting frontend
+
+  frontend2:
+    image: nick3009/chatapp-frontend2:lts
+    build:
+      context: ./frontend2 # Path to the frontend Dockerfile
+    ports:
+      - '3001:3000'
+    depends_on:
+      - backend # Wait for backend 
